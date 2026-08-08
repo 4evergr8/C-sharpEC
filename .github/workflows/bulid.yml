@@ -1,9 +1,7 @@
-name: Build Windows EXE
+name: Build EXE
 
 on:
-  push:
-    branches:
-      - main
+  workflow_dispatch:
 
 jobs:
   build:
@@ -13,16 +11,25 @@ jobs:
       - name: 拉取代码
         uses: actions/checkout@v4
 
-      - name: 安装 .NET SDK
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '8.0.x'
+      - name: 设置 MSBuild
+        uses: microsoft/setup-msbuild@v2
 
-      - name: 编译发布
-        run: dotnet publish C-sharpEC/HonorPCManagerisJ8.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish
+      - name: 还原 NuGet
+        run: nuget restore HonorPCManagerisJ8.sln
 
-      - name: 上传 EXE
+      - name: 编译
+        run: msbuild HonorPCManagerisJ8.sln /p:Configuration=Release
+
+      - name: 收集文件
+        run: |
+          mkdir output
+          copy HonorPCManagerisJ8\bin\Release\*.exe output\
+          copy HonorPCManagerisJ8\bin\Release\*.dll output\
+          copy WinRing0x64.sys output\
+          copy config.yaml output\
+
+      - name: 上传产物
         uses: actions/upload-artifact@v4
         with:
-          name: MyProject-win-x64
-          path: publish
+          name: HonorPCManagerisJ8
+          path: output
