@@ -1,0 +1,28 @@
+name: Build Windows EXE
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+
+      - name: 安装 .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: 编译发布
+        run: dotnet publish C-sharpEC/HonorPCManagerisJ8.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -o publish
+
+      - name: 上传 EXE
+        uses: actions/upload-artifact@v4
+        with:
+          name: MyProject-win-x64
+          path: publish
